@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# Define Variables
+GIT_REPO="https://github.com/your-repo/your-microservice.git"
+JENKINS_URL="http://your-jenkins-url:8080"
+AWS_REGION="us-east-1"
+DB_NAME="sampledb"
+DB_USER="dbuser"
+DB_PASSWORD="dbpassword"
+S3_BUCKET="your-s3-bucket"
+TERRAFORM_DIR="./terraform"
+ANSIBLE_DIR="./ansible"
+DOCKER_COMPOSE_FILE="./docker-compose.yml"
+
+# Function to set up Git
+setup_git() {
+    echo "Setting up Git..."
+    git clone $GIT_REPO || { echo "Git clone failed"; exit 1; }
+    cd your-microservice || { echo "Directory not found"; exit 1; }
+}
+
+# Function to set up Docker
+setup_docker() {
+    echo "Building Docker images..."
+    docker-compose -f $DOCKER_COMPOSE_FILE up --build -d || { echo "Docker build failed"; exit 1; }
+}
+
+# Function to configure Jenkins
+setup_jenkins() {
+    echo "Configuring Jenkins..."
+    # Ensure Jenkins is running and configure your jobs via the Jenkins UI or script it using Jenkins Job DSL
+}
+
+# Function to set up AWS services
+setup_aws() {
+    echo "Setting up AWS resources..."
+    aws configure set region $AWS_REGION
+
+    echo "Creating S3 bucket..."
+    aws s3 mb s3://$S3_BUCKET || { echo "Failed to create S3 bucket"; exit 1; }
+
+    echo "Creating RDS PostgreSQL instance..."
+    DB_INSTANCE_IDENTIFIER="mydbinstance"
+    aws rds create-db-instance \
+        --db-instance-identifier $DB_INSTANCE_IDENTIFIER \
+        --db-instance-class db.t2.micro \
+        --engine postgres \
+        --master-username $DB_USER \
+        --master-user-password $DB_PASSWORD \
+        --allocated-storage 20 \
+        --backup-retention-period 3 || { echo "Failed to create RDS instance"; exit 1; }
+}
+
+# Function to set up Terraform
+setup_terraform() {
+    echo "Applying Terraform configuration..."
+    cd $TERRAFORM_DIR || { echo "Terraform directory not found"; exit 1; }
+    terraform init || { echo "Terraform init failed"; exit 1; }
+    terraform apply -auto-approve || { echo "Terraform apply failed"; exit 1; }
+}
+
+# Function to run Ansible Playbook
+setup_ansible() {
+    echo "Running Ansible Playbook..."
+    cd $ANSIBLE_DIR || { echo "Ansible directory not found"; exit 1; }
+    ansible-playbook playbook.yml || { echo "Ansible playbook execution failed"; exit 1; }
+}
+
+# Function to set up monitoring tools
+setup_monitoring() {
+    echo "Setting up Monitoring Tools..."
+    # Instructions for Grafana and ELK/OpenSearch setup
+    # This can be a series of docker-compose commands or AWS service deployments.
+}
+
+# Function to deploy microservices
+deploy_microservices() {
+    echo "Deploying Microservices..."
+    docker-compose -f $DOCKER_COMPOSE_FILE up -d || { echo "Microservice deployment failed"; exit 1; }
+}
+
+# Function to verify database connection
+verify_db_connection() {
+    echo "Verifying Database Connection..."
+    # Replace with your microservice's health check endpoint
+    curl -f http://localhost:your_service_port/health || { echo "Health check failed"; exit 1; }
+}
+
+# Main execution flow
+setup_git
+setup_docker
+setup_jenkins
+setup_aws
+setup_terraform
+setup_ansible
+setup_monitoring
+deploy_microservices
+verify_db_connection
+
+echo "Deployment complete!"
+
